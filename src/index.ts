@@ -48,6 +48,17 @@ async function bootstrap() {
   process.once('SIGINT', () => shutdown('SIGINT'));
   process.once('SIGTERM', () => shutdown('SIGTERM'));
 
+  // Periodic background hunter (every 5 minutes while bot is alive)
+  const SCAN_INTERVAL_MS = 5 * 60 * 1000;
+  setInterval(async () => {
+    try {
+      logger.info('Running periodic background job scan...');
+      await jobService.runHuntingCycle(bot);
+    } catch (err) {
+      logger.error('Periodic scan encountered an error', err);
+    }
+  }, SCAN_INTERVAL_MS);
+
   // Start initial scan in background after bot starts
   setTimeout(async () => {
     try {
@@ -58,7 +69,7 @@ async function bootstrap() {
     }
   }, 3000);
 
-  logger.info('🤖 Bot is now online and listening for messages...');
+  logger.info('🤖 Bot is now online and listening for messages 24/7...');
   await bot.start();
 }
 
