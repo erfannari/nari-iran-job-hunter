@@ -1,6 +1,7 @@
 import { Context } from 'grammy';
 import { jobRepository } from '../../database/job.repository.js';
 import { createMainMenuKeyboard } from '../keyboards/main.menu.js';
+import { handleJobsCommand } from './jobs.js';
 
 export async function handleStartCommand(ctx: Context): Promise<void> {
   const chatId = String(ctx.chat?.id);
@@ -37,4 +38,7 @@ Use the bottom menu buttons or send any of these commands:
     parse_mode: 'Markdown',
     reply_markup: createMainMenuKeyboard(),
   });
+
+  // Automatically fetch and show latest jobs immediately on start
+  await handleJobsCommand(ctx);
 }
