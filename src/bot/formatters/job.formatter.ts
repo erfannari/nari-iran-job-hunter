@@ -15,42 +15,49 @@ export class JobFormatter {
     const score = job.match_score ?? 70;
     const badge = score >= 85 ? '🟣 <b>[TOP MATCH]</b>' : score >= 70 ? '🔹 <b>[GOOD MATCH]</b>' : '▫️ <b>[MATCH]</b>';
 
-    // Parse tools/skills
-    let skillsDisplay = '';
+    // Parse & sanitize skills
+    let cleanSkills: string[] = [];
     if (job.skills) {
       try {
         const parsed = JSON.parse(job.skills);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          skillsDisplay = parsed.slice(0, 4).join(' · ');
+        if (Array.isArray(parsed)) {
+          const skipPatterns = ['دسته بندی', 'موقعیت', 'نوع همکاری', 'سابقه کار', 'حقوق', 'جنسیت', 'سربازی'];
+          cleanSkills = parsed
+            .map((s: string) => String(s).replace(/\s+/g, ' ').trim())
+            .filter((s: string) => s.length > 1 && s.length <= 30 && !skipPatterns.some((p) => s.includes(p)));
         }
       } catch {
-        skillsDisplay = job.skills;
+        // Not JSON
       }
     }
 
     const expText = job.required_experience_years
-      ? `${job.required_experience_years}+ yrs`
+      ? `${job.required_experience_years}+ years`
       : 'Mid / Senior';
 
     const sourceBadge = job.source === 'jobvision' ? 'Jobvision' : 'Jobinja';
-    const loc = (job.location || 'Iran / Remote').trim();
-    const company = (job.company || 'Company').trim();
+    const loc = (job.location || 'ایران').replace(/\s+/g, ' ').trim();
+    const company = (job.company || 'شرکت محرمانه').replace(/\s+/g, ' ').trim();
 
     const lines: string[] = [
-      `${badge} <b>${score}%</b> — <i>${sourceBadge}</i>`,
-      `🎨 <b>${this.escapeHtml(job.title)}</b>`,
-      `🏢 <b>${this.escapeHtml(company)}</b> · 📍 ${this.escapeHtml(loc)} · ⏳ ${expText}`,
+      `${badge} <b>${score}%</b> · <i>${sourceBadge}</i>`,
+      `💼 <b>${this.escapeHtml(job.title.replace(/\s+/g, ' ').trim())}</b>`,
+      '',
+      `🏢 <b>Company:</b> ${this.escapeHtml(company)}`,
+      `📍 <b>Location:</b> ${this.escapeHtml(loc)}`,
+      `⏳ <b>Level:</b> ${expText}`,
     ];
 
-    if (skillsDisplay) {
-      lines.push(`🛠 <code>${this.escapeHtml(skillsDisplay)}</code>`);
+    if (cleanSkills.length > 0) {
+      lines.push(`🛠 <b>Skills:</b> ${this.escapeHtml(cleanSkills.slice(0, 4).join(' · '))}`);
     }
 
-    // AI insight summary (concise 1 line)
+    // AI insight summary
     if (ai?.reasons && ai.reasons.length > 0) {
-      lines.push(`💡 <i>${this.escapeHtml(ai.reasons[0])}</i>`);
+      const reason = ai.reasons[0].replace(/\s+/g, ' ').trim();
+      lines.push('', `💡 <i>${this.escapeHtml(reason)}</i>`);
     } else if (ai?.recommendation) {
-      lines.push(`💡 <i>${this.escapeHtml(ai.recommendation)}</i>`);
+      lines.push('', `💡 <i>${this.escapeHtml(ai.recommendation.replace(/\s+/g, ' ').trim())}</i>`);
     }
 
     return lines.join('\n');
@@ -60,7 +67,7 @@ export class JobFormatter {
     const keyboard = new InlineKeyboard();
 
     // Row 1: Direct Apply link & Bookmark button
-    keyboard.url('🎨 Apply ↗', job.url);
+    keyboard.url('🔗 Apply ↗', job.url);
     if (job.status === 'saved') {
       keyboard.text('⭐ Saved ✓', `action:unsave:${job.id}`);
     } else {
@@ -87,4 +94,5 @@ export class JobFormatter {
       .replace(/>/g, '&gt;');
   }
 }
+
 

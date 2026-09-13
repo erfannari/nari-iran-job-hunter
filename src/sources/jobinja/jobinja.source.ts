@@ -117,15 +117,21 @@ export class JobinjaSource implements JobSource {
       });
 
       const $ = cheerio.load(resp.data);
-      const fullDesc = $('.o-box__text, .c-infoBox__description, .c-jobView__description').text().trim();
+      const fullDesc = $('.o-box__text, .c-infoBox__description, .c-jobView__description').text().replace(/\s+/g, ' ').trim();
       const skills: string[] = [];
 
-      $('.c-infoBox__tags .c-infoBox__tag, .c-tagList__item, .c-infoBox__item').each((_, el) => {
-        const tag = $(el).text().trim();
-        if (tag) skills.push(tag);
+      const skipPatterns = ['دسته بندی', 'موقعیت مکانی', 'نوع همکاری', 'سابقه کار', 'حقوق', 'جنسیت', 'سربازی', 'رشته تحصیلی'];
+
+      $('.c-infoBox__tags .c-infoBox__tag, .c-tagList__item, a.c-jobView__tag, .c-tags__item').each((_, el) => {
+        const rawTag = $(el).text().replace(/\s+/g, ' ').trim();
+        if (rawTag && rawTag.length <= 40 && !skipPatterns.some((p) => rawTag.includes(p))) {
+          if (!skills.includes(rawTag)) {
+            skills.push(rawTag);
+          }
+        }
       });
 
-      const employmentType = $('.c-infoBox__item:contains("نوع همکاری")').text().replace('نوع همکاری:', '').trim();
+      const employmentType = $('.c-infoBox__item:contains("نوع همکاری")').text().replace('نوع همکاری:', '').replace(/\s+/g, ' ').trim();
 
       return {
         ...job,
