@@ -1,0 +1,98 @@
+export interface JobProfileConfig {
+  name: string;
+  targetTitles: string[];
+  persianTitles: string[];
+  coreSkills: string[];
+  bonusSkills: string[];
+  negativeKeywords: string[];
+  targetExperienceYears: { min: number; max: number };
+}
+
+export const DESIGN_PROFILE: JobProfileConfig = {
+  name: 'UI/UX & Product Design',
+  targetTitles: [
+    'product designer',
+    'ui/ux designer',
+    'ui designer',
+    'ux designer',
+    'ui ux designer',
+    'interaction designer',
+    'visual designer',
+    'ux researcher',
+    'user experience designer',
+    'user interface designer',
+    'lead product designer',
+    'senior product designer',
+    'senior ui/ux designer',
+  ],
+  persianTitles: [
+    'طراح محصول',
+    'طراح رابط کاربری',
+    'طراح تجربه کاربری',
+    'طراح محصول و تجربه کاربری',
+    'طراح ui/ux',
+    'طراح ui ux',
+    'طراح ui',
+    'طراح ux',
+    'پژوهشگر تجربه کاربری',
+    'محقق ux',
+    'طراح دیزاین سیستم',
+    'طراح بصری',
+  ],
+  coreSkills: [
+    'figma',
+    'design system',
+    'design systems',
+    'ui/ux',
+    'ui ux',
+    'wireframing',
+    'prototyping',
+    'user research',
+    'user testing',
+    'information architecture',
+    'usability testing',
+    'user flow',
+    'journey mapping',
+    'sketch',
+    'adobe xd',
+  ],
+  bonusSkills: [
+    'micro-interactions',
+    'framer',
+    'principle',
+    'lottie',
+    'heuristic evaluation',
+    'design sprint',
+    'agile',
+    'scrum',
+    'a/b testing',
+    'analytics',
+  ],
+  negativeKeywords: [
+    'frontend developer',
+    'front-end developer',
+    'react developer',
+    'vue developer',
+    'angular developer',
+    'full stack',
+    'backend developer',
+    'چاپ و بسته بندی',
+    'طراح چاپ',
+    'کانون تبلیغاتی',
+    'بنر تبلیغاتی',
+    '3d max',
+    'maya',
+    'blender',
+    'طراح دکوراسیون',
+    'طراح صنعتی',
+    'معماری داخلی',
+    'کارشناس فروش',
+    'پشتیبان سایت',
+    'ادمین اینستاگرام',
+    'تولید محتوا متنی',
+  ],
+  targetExperienceYears: {
+    min: 1,
+    max: 4,
+  },
+};

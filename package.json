@@ -1,0 +1,29 @@
+{
+  "name": "iran-design-job-hunter",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Automated 24/7 Telegram Job Hunter Bot for UI/UX & Product Design positions in Iran",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "scan": "tsc && node dist/jobs/run_scanner.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.22.0",
+    "axios": "^1.7.9",
+    "better-sqlite3": "^11.8.1",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "grammy": "^1.35.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

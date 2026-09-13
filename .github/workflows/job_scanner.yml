@@ -1,0 +1,48 @@
+name: 🚀 Iran Design Job Hunter 24/7 Scanner
+
+on:
+  schedule:
+    # Runs automatically every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  hunt_jobs:
+    name: 🔍 Scan Iran Design Jobs & Alert Telegram
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js (v22 LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 📁 Ensure Data Directory
+        run: mkdir -p data
+
+      - name: 🗄️ Cache Jobs Database
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: jobs-data-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            jobs-data-${{ runner.os }}-
+
+      - name: 🤖 Run Multi-Source Scanner & Gemini AI
+        env:
+          NODE_ENV: production
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AI_PROVIDER: gemini
+          MIN_MATCH_SCORE: 60
+        # Important: use "npm run scan" which runs "tsc && node dist/jobs/run_scanner.js"
+        # to avoid native SQLite worker crashes (exit code 139)
+        run: npm run scan
