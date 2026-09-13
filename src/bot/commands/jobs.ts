@@ -9,7 +9,8 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
   const user = jobRepository.getUser(chatId);
   const minScore = user?.min_score ?? 60;
 
-  let jobs = jobRepository.getRecentHighMatchingJobs(minScore, 6);
+  // Fetch exactly the top 10 most recent matching design jobs (under 40 days old)
+  let jobs = jobRepository.getRecentHighMatchingJobs(minScore, 10, 40);
 
   // If no jobs in DB yet, trigger a fast scan
   if (jobs.length === 0) {
@@ -19,7 +20,7 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
 
     try {
       await jobService.runHuntingCycle();
-      jobs = jobRepository.getRecentHighMatchingJobs(minScore, 6);
+      jobs = jobRepository.getRecentHighMatchingJobs(minScore, 10, 40);
       await ctx.api.deleteMessage(chatId, statusMsg.message_id).catch(() => {});
     } catch (e) {
       logger.error('Failed on-demand scan in handleJobsCommand', e);
@@ -28,13 +29,13 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
 
   if (jobs.length === 0) {
     await ctx.reply(
-      '🔍 No high-matching design jobs found right now.\nThe scanner will automatically discover listings on the next cycle!',
+      '🔍 No high-matching design jobs (under 40 days old) found right now.\nThe scanner will automatically discover listings on the next cycle!',
       { parse_mode: 'Markdown' }
     );
     return;
   }
 
-  await ctx.reply(`🔥 *Latest Design Job Vacancies (Jobinja & Jobvision):*`, { parse_mode: 'Markdown' });
+  await ctx.reply(`🔥 *Top ${jobs.length} Latest Design Jobs (Jobinja & Jobvision):*`, { parse_mode: 'Markdown' });
 
   for (const job of jobs) {
     const cardText = JobFormatter.formatJobCard(job);
@@ -46,7 +47,7 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
       link_preview_options: { is_disabled: true },
     });
 
-    // Small delay to maintain order in Telegram
+    // Small delay to maintain message order in Telegram
     await new Promise((r) => setTimeout(r, 200));
   }
 }

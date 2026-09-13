@@ -1,5 +1,6 @@
 import { getDatabase } from './db.js';
 import { JobRecord, UserStateRecord } from '../jobs/types.js';
+import { JobNormalizer } from '../jobs/job.normalizer.js';
 
 export class JobRepository {
   private get db() {
@@ -77,17 +78,19 @@ export class JobRepository {
     stmt.run(status, new Date().toISOString(), id);
   }
 
-  getRecentHighMatchingJobs(minScore: number = 60, limit: number = 20): JobRecord[] {
+  getRecentHighMatchingJobs(minScore: number = 60, limit: number = 10, maxDays: number = 40): JobRecord[] {
     const stmt = this.db.prepare(`
       SELECT * FROM jobs
       WHERE match_score >= ?
+        AND datetime(discovered_at) >= datetime('now', '-40 days')
       ORDER BY match_score DESC, discovered_at DESC
       LIMIT ?
     `);
-    return stmt.all(minScore, limit) as JobRecord[];
+    const all = stmt.all(minScore, limit * 2) as JobRecord[];
+    return all.filter((j) => !JobNormalizer.isJobOlderThanDays(j, maxDays)).slice(0, limit);
   }
 
-  getSavedJobs(limit: number = 20): JobRecord[] {
+  getSavedJobs(limit: number = 10): JobRecord[] {
     const stmt = this.db.prepare(`
       SELECT * FROM jobs
       WHERE status = 'saved'
@@ -97,7 +100,7 @@ export class JobRepository {
     return stmt.all(limit) as JobRecord[];
   }
 
-  getAppliedJobs(limit: number = 20): JobRecord[] {
+  getAppliedJobs(limit: number = 10): JobRecord[] {
     const stmt = this.db.prepare(`
       SELECT * FROM jobs
       WHERE status = 'applied'
@@ -107,16 +110,18 @@ export class JobRepository {
     return stmt.all(limit) as JobRecord[];
   }
 
-  getUnnotifiedJobs(chatId: string, minScore: number = 60): JobRecord[] {
+  getUnnotifiedJobs(chatId: string, minScore: number = 60, maxDays: number = 40): JobRecord[] {
     const stmt = this.db.prepare(`
       SELECT j.* FROM jobs j
       LEFT JOIN job_notifications n ON j.id = n.job_id AND n.chat_id = ?
       WHERE n.job_id IS NULL
         AND j.match_score >= ?
         AND j.status != 'ignored'
+        AND datetime(j.discovered_at) >= datetime('now', '-40 days')
       ORDER BY j.match_score DESC, j.discovered_at DESC
     `);
-    return stmt.all(chatId, minScore) as JobRecord[];
+    const all = stmt.all(chatId, minScore) as JobRecord[];
+    return all.filter((j) => !JobNormalizer.isJobOlderThanDays(j, maxDays));
   }
 
   recordNotification(jobId: string, chatId: string, messageId?: number): void {
@@ -198,7 +203,7 @@ export class JobRepository {
 
   getStats(): { totalJobs: number; highMatchJobs: number; appliedCount: number; savedCount: number } {
     const totalJobs = (this.db.prepare('SELECT COUNT(*) as count FROM jobs').get() as { count: number }).count;
-    const highMatchJobs = (this.db.prepare('SELECT COUNT(*) as count FROM jobs WHERE match_score >= 60').get() as { count: number }).count;
+    const highMatchJobs = (this.db.prepare("SELECT COUNT(*) as count FROM jobs WHERE match_score >= 60 AND datetime(discovered_at) >= datetime('now', '-40 days')").get() as { count: number }).count;
     const appliedCount = (this.db.prepare("SELECT COUNT(*) as count FROM jobs WHERE status = 'applied'").get() as { count: number }).count;
     const savedCount = (this.db.prepare("SELECT COUNT(*) as count FROM jobs WHERE status = 'saved'").get() as { count: number }).count;
 
