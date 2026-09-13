@@ -23,6 +23,12 @@ export class JobService {
     for (const raw of rawListings) {
       try {
         const normalized = JobNormalizer.normalizeListing(raw);
+
+        // Discard older than 40 days immediately
+        if (JobNormalizer.isJobOlderThanDays(normalized, 40)) {
+          continue;
+        }
+
         const existing = jobRepository.getJobByFingerprint(normalized.fingerprint);
 
         let jobToScore: JobRecord;
@@ -95,11 +101,14 @@ export class JobService {
     for (const chatId of targetChatIds) {
       const user = jobRepository.getUser(chatId);
       const minScore = user?.min_score ?? config.MIN_MATCH_SCORE;
-      const unnotifiedJobs = jobRepository.getUnnotifiedJobs(chatId, minScore);
+      const unnotifiedJobs = jobRepository.getUnnotifiedJobs(chatId, minScore, 40);
 
       logger.info(`Dispatching ${unnotifiedJobs.length} new jobs to chat_id: ${chatId}`);
 
-      for (const job of unnotifiedJobs) {
+      // Reverse so the highest score (best match) is delivered last and appears at the bottom of the chat
+      const jobsToSend = [...unnotifiedJobs].reverse();
+
+      for (const job of jobsToSend) {
         try {
           const cardText = JobFormatter.formatJobCard(job);
           const keyboard = JobFormatter.createJobKeyboard(job);

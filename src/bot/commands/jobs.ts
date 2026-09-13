@@ -35,9 +35,12 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
     return;
   }
 
-  await ctx.reply(`🔥 *Top ${jobs.length} Latest Design Jobs (Jobinja & Jobvision):*`, { parse_mode: 'Markdown' });
+  await ctx.reply(`🔥 *Top ${jobs.length} Latest Design Jobs (Best matches at the bottom 👇):*`, { parse_mode: 'Markdown' });
 
-  for (const job of jobs) {
+  // Reverse so the highest score (best match) is delivered last and appears at the bottom of the chat
+  const jobsToSend = [...jobs].reverse();
+
+  for (const job of jobsToSend) {
     const cardText = JobFormatter.formatJobCard(job);
     const keyboard = JobFormatter.createJobKeyboard(job);
 
