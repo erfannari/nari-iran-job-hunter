@@ -9,18 +9,18 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
   const user = jobRepository.getUser(chatId);
   const minScore = user?.min_score ?? 60;
 
-  // Fetch exactly the top 10 most recent matching design jobs (under 40 days old)
-  let jobs = jobRepository.getRecentHighMatchingJobs(minScore, 10, 40);
+  // Fetch top 5 most recent matching design jobs (under 40 days old)
+  let jobs = jobRepository.getRecentHighMatchingJobs(minScore, 5, 40);
 
   // If no jobs in DB yet, trigger a fast scan
   if (jobs.length === 0) {
     const statusMsg = await ctx.reply('🔄 Scanning Iranian job boards for the latest UI/UX & Product Design positions...', {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
     });
 
     try {
       await jobService.runHuntingCycle();
-      jobs = jobRepository.getRecentHighMatchingJobs(minScore, 10, 40);
+      jobs = jobRepository.getRecentHighMatchingJobs(minScore, 5, 40);
       await ctx.api.deleteMessage(chatId, statusMsg.message_id).catch(() => {});
     } catch (e) {
       logger.error('Failed on-demand scan in handleJobsCommand', e);
@@ -29,15 +29,15 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
 
   if (jobs.length === 0) {
     await ctx.reply(
-      '🔍 No high-matching design jobs (under 40 days old) found right now.\nThe scanner will automatically discover listings on the next cycle!',
-      { parse_mode: 'Markdown' }
+      '🔍 <b>No high-matching design jobs found right now.</b>\nThe scanner will automatically discover listings on the next 5-minute cycle!',
+      { parse_mode: 'HTML' }
     );
     return;
   }
 
-  await ctx.reply(`🔥 *Top ${jobs.length} Latest Design Jobs (Best matches at the bottom 👇):*`, { parse_mode: 'Markdown' });
+  await ctx.reply(`🔥 <b>Top ${jobs.length} Latest Design Jobs:</b>`, { parse_mode: 'HTML' });
 
-  // Reverse so the highest score (best match) is delivered last and appears at the bottom of the chat
+  // Reverse so the highest score is delivered last (bottom of chat)
   const jobsToSend = [...jobs].reverse();
 
   for (const job of jobsToSend) {
@@ -45,12 +45,12 @@ export async function handleJobsCommand(ctx: Context): Promise<void> {
     const keyboard = JobFormatter.createJobKeyboard(job);
 
     await ctx.reply(cardText, {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: keyboard,
       link_preview_options: { is_disabled: true },
     });
 
     // Small delay to maintain message order in Telegram
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 150));
   }
 }

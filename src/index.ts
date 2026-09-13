@@ -5,10 +5,18 @@ import { jobService } from './jobs/job.service.js';
 import { logger } from './utils/logger.js';
 
 function startHealthCheckServer() {
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'ok', service: 'iran-job-hunter', timestamp: new Date().toISOString() }));
+  });
+
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      logger.warn(`Port ${port} in use, health check endpoint skipped locally.`);
+    } else {
+      logger.warn('Health check server error:', err.message);
+    }
   });
 
   server.listen(port, () => {

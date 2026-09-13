@@ -6,20 +6,20 @@ export async function handleSavedCommand(ctx: Context): Promise<void> {
   const savedJobs = jobRepository.getSavedJobs(10);
 
   if (savedJobs.length === 0) {
-    await ctx.reply('⭐ *No saved jobs yet.*\nClick the "⭐ Save" button on any job card to bookmark it here.', {
-      parse_mode: 'Markdown',
+    await ctx.reply('⭐ <b>No saved jobs yet.</b>\nClick the <b>"⭐ Save"</b> button on any job card to bookmark it here.', {
+      parse_mode: 'HTML',
     });
     return;
   }
 
-  await ctx.reply(`⭐ *Your Bookmarked Design Jobs (${savedJobs.length}):*`, { parse_mode: 'Markdown' });
+  await ctx.reply(`⭐ <b>Your Bookmarked Design Jobs (${savedJobs.length}):</b>`, { parse_mode: 'HTML' });
 
   for (const job of savedJobs) {
     const cardText = JobFormatter.formatJobCard(job);
     const keyboard = JobFormatter.createJobKeyboard(job);
 
     await ctx.reply(cardText, {
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: keyboard,
       link_preview_options: { is_disabled: true },
     });

@@ -114,7 +114,7 @@ export class JobService {
           const keyboard = JobFormatter.createJobKeyboard(job);
 
           const sentMsg = await bot.api.sendMessage(chatId, cardText, {
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             reply_markup: keyboard,
             link_preview_options: { is_disabled: true },
           });

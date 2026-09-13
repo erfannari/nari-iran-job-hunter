@@ -13,16 +13,15 @@ export class JobFormatter {
     }
 
     const score = job.match_score ?? 70;
-    const scoreEmoji = score >= 85 ? '🟪 🎨' : score >= 70 ? '🟣 🎨' : '🔹 🎨';
-    const recText = ai?.recommendation ? `⭐ *${ai.recommendation}*` : score >= 80 ? '⭐ *STRONGLY APPLY*' : '👍 *APPLY*';
+    const badge = score >= 85 ? '🟣 <b>[TOP MATCH]</b>' : score >= 70 ? '🔹 <b>[GOOD MATCH]</b>' : '▫️ <b>[MATCH]</b>';
 
     // Parse tools/skills
-    let skillsDisplay = 'Figma · Design Systems · User Research';
+    let skillsDisplay = '';
     if (job.skills) {
       try {
         const parsed = JSON.parse(job.skills);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          skillsDisplay = parsed.slice(0, 5).join(' · ');
+          skillsDisplay = parsed.slice(0, 4).join(' · ');
         }
       } catch {
         skillsDisplay = job.skills;
@@ -30,53 +29,28 @@ export class JobFormatter {
     }
 
     const expText = job.required_experience_years
-      ? `${job.required_experience_years}+ years`
-      : '1–4 years (Target profile)';
+      ? `${job.required_experience_years}+ yrs`
+      : 'Mid / Senior';
+
+    const sourceBadge = job.source === 'jobvision' ? 'Jobvision' : 'Jobinja';
+    const loc = (job.location || 'Iran / Remote').trim();
+    const company = (job.company || 'Company').trim();
 
     const lines: string[] = [
-      `${scoreEmoji} *UI/UX & DESIGN — ${score}% MATCH* 🟣`,
-      `> 🎨 *${this.escapeMarkdown(job.title)}*`,
-      '',
-      `🏢 *Studio / Company:* ${this.escapeMarkdown(job.company)}`,
-      `📍 *Location:* ${this.escapeMarkdown(job.location || 'Iran / Remote')}`,
-      `🕐 *Posted:* ${this.escapeMarkdown(job.posted_at || 'Recently')}`,
-      `✨ *Design Tools:* _${this.escapeMarkdown(skillsDisplay)}_`,
-      `⏳ *Experience:* ${expText}`,
-      '',
+      `${badge} <b>${score}%</b> — <i>${sourceBadge}</i>`,
+      `🎨 <b>${this.escapeHtml(job.title)}</b>`,
+      `🏢 <b>${this.escapeHtml(company)}</b> · 📍 ${this.escapeHtml(loc)} · ⏳ ${expText}`,
     ];
 
-    if (ai?.fitLevel) {
-      lines.push(
-        '🟣 *Design Fit Breakdown:*',
-        `💜 Design Skills — ${ai.fitLevel.designSkills || 'Good Match'}`,
-        `💜 Experience — ${ai.fitLevel.experience || 'Ideal Level'}`,
-        ''
-      );
+    if (skillsDisplay) {
+      lines.push(`🛠 <code>${this.escapeHtml(skillsDisplay)}</code>`);
     }
 
-    lines.push(`🎯 *Recommendation:* ${recText}`, '');
-
+    // AI insight summary (concise 1 line)
     if (ai?.reasons && ai.reasons.length > 0) {
-      lines.push('💡 *Why it fits your profile:*');
-      for (const r of ai.reasons.slice(0, 3)) {
-        lines.push(`🔸 ${this.escapeMarkdown(r)}`);
-      }
-      lines.push('');
-    } else {
-      lines.push(
-        '💡 *Why it fits your profile:*',
-        `🔸 Target Design role matched in title: "${this.escapeMarkdown(job.title)}"`,
-        '🔸 Relevant skills match UI/UX & Product Design profile',
-        ''
-      );
-    }
-
-    if (ai?.concerns && ai.concerns.length > 0) {
-      lines.push('⚠️ *Notes:*');
-      for (const c of ai.concerns.slice(0, 2)) {
-        lines.push(`▫️ ${this.escapeMarkdown(c)}`);
-      }
-      lines.push('');
+      lines.push(`💡 <i>${this.escapeHtml(ai.reasons[0])}</i>`);
+    } else if (ai?.recommendation) {
+      lines.push(`💡 <i>${this.escapeHtml(ai.recommendation)}</i>`);
     }
 
     return lines.join('\n');
@@ -85,32 +59,32 @@ export class JobFormatter {
   static createJobKeyboard(job: JobRecord): InlineKeyboard {
     const keyboard = new InlineKeyboard();
 
-    // Row 1: Direct Apply link button
-    keyboard.url('🎨 Apply (Design) ↗', job.url);
-    keyboard.row();
-
-    // Row 2: Mark Checked / Applied button
-    if (job.status === 'applied') {
-      keyboard.text('✅ Applied (Click to undo)', `action:unapply:${job.id}`);
-    } else {
-      keyboard.text('✅ Mark Checked / Applied', `action:apply:${job.id}`);
-    }
-    keyboard.row();
-
-    // Row 3: Save / Ignore
+    // Row 1: Direct Apply link & Bookmark button
+    keyboard.url('🎨 Apply ↗', job.url);
     if (job.status === 'saved') {
       keyboard.text('⭐ Saved ✓', `action:unsave:${job.id}`);
     } else {
       keyboard.text('⭐ Save', `action:save:${job.id}`);
     }
+    keyboard.row();
 
-    keyboard.text('❌ Ignore', `action:ignore:${job.id}`);
+    // Row 2: Mark applied & Dismiss
+    if (job.status === 'applied') {
+      keyboard.text('✅ Applied (Undo)', `action:unapply:${job.id}`);
+    } else {
+      keyboard.text('✅ Mark Applied', `action:apply:${job.id}`);
+    }
+    keyboard.text('❌ Dismiss', `action:ignore:${job.id}`);
 
     return keyboard;
   }
 
-  private static escapeMarkdown(text: string): string {
+  static escapeHtml(text: string): string {
     if (!text) return '';
-    return text.replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 }
+
