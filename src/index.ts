@@ -1,10 +1,26 @@
+import http from 'http';
 import { createBot } from './bot/bot.js';
 import { getDatabase, closeDatabase } from './database/db.js';
 import { jobService } from './jobs/job.service.js';
 import { logger } from './utils/logger.js';
 
+function startHealthCheckServer() {
+  const port = process.env.PORT || 3000;
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'iran-job-hunter', timestamp: new Date().toISOString() }));
+  });
+
+  server.listen(port, () => {
+    logger.info(`Health check HTTP server listening on port ${port}`);
+  });
+
+  return server;
+}
+
 async function bootstrap() {
   logger.info('Initializing Iran Design Job Hunter Bot...');
+  startHealthCheckServer();
   getDatabase();
 
   const bot = createBot();
