@@ -1,34 +1,40 @@
 import { Context } from 'grammy';
 import { jobRepository } from '../../database/job.repository.js';
+import { createMainMenuKeyboard } from '../keyboards/main.menu.js';
 
 export async function handleStartCommand(ctx: Context): Promise<void> {
   const chatId = String(ctx.chat?.id);
   const username = ctx.from?.username;
-  const firstName = ctx.from?.first_name;
+  const firstName = ctx.from?.first_name || 'Designer';
 
   jobRepository.upsertUser(chatId, username, firstName);
 
   const welcomeMessage = `
-🎨 *Welcome to Iran Design Job Hunter Bot!* 🇮🇷
+🎨 *Welcome, ${firstName}!* 🇮🇷
+*Iran UI/UX & Product Design Job Hunter Bot*
 
-I am your 24/7 automated hunter for **UI/UX & Product Design** positions across Iranian job portals (Jobinja, Jobvision, and more).
+I am your 24/7 automated intelligence bot dedicated exclusively to finding the best **Product Design, UI/UX, and UX Research** vacancies across top Iranian portals (Jobinja, Jobvision, and more).
 
-✨ *Features:*
-🟣 *Design-Only Intelligence:* Tailored for Product Designers (1-2 yrs) & UI/UX Designers (3-4 yrs).
-🤖 *Gemini 2.5 Flash Evaluation:* Deep semantic analysis and fit scoring for every job listing.
-⚡ *Instant Alerts:* Real-time notifications with direct Apply links & 1-click tracking.
+✨ *How it works:*
+1. 🔍 *Continuous Scanning:* Scrapes the latest postings 24/7 every 15 minutes.
+2. 🤖 *Gemini AI Evaluation:* Uses Google Gemini AI to analyze job requirements, design depth, and experience match.
+3. ⚡ *Instant Alerts:* Delivers curated job cards with direct *Apply* links and match breakdowns.
 
-📋 *Available Commands:*
-• /jobs or /design - View top matching design vacancies
-• /saved - View your bookmarked jobs
-• /applied - View jobs you have marked as applied
-• /stats - View scanner & hunting statistics
-• /settings - Customize minimum match score threshold
-• /resume - Save your portfolio and CV links for quick access
-• /help - Bot usage guide & assistance
+🚀 *Quick Navigation:*
+Use the bottom menu buttons or send any of these commands:
+• 🎨 *Top Design Jobs* (\`/jobs\`) - View high-matching vacancies
+• ⭐ *Saved Jobs* (\`/saved\`) - Review your bookmarked jobs
+• ✅ *Applied Tracker* (\`/applied\`) - Track positions you applied to
+• 📊 *Statistics* (\`/stats\`) - Scanner & market metrics
+• ⚙️ *Settings* (\`/settings\`) - Customize alert match score threshold
+• 💼 *Portfolio / CV* (\`/resume\`) - Save your portfolio and CV links
+• 📖 *Help & Guide* (\`/help\`) - Commands reference
 
-🔔 You are now subscribed to automated high-match alerts!
+🔔 *You are actively subscribed to receive new design job alerts!*
 `;
 
-  await ctx.reply(welcomeMessage, { parse_mode: 'Markdown' });
+  await ctx.reply(welcomeMessage, {
+    parse_mode: 'Markdown',
+    reply_markup: createMainMenuKeyboard(),
+  });
 }

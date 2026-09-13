@@ -24,6 +24,15 @@ export function createBot(): Bot {
   bot.command('settings', handleSettingsCommand);
   bot.command(['resume', 'cv', 'portfolio'], handleResumeCommand);
 
+  // Text menu button listeners (matching persistent keyboard)
+  bot.hears(/🎨\s*Top Design Jobs/i, handleJobsCommand);
+  bot.hears(/⭐\s*Saved Jobs/i, handleSavedCommand);
+  bot.hears(/✅\s*Applied Tracker/i, handleAppliedCommand);
+  bot.hears(/📊\s*Statistics/i, handleStatsCommand);
+  bot.hears(/⚙️\s*Settings/i, handleSettingsCommand);
+  bot.hears(/💼\s*Portfolio\s*\/\s*CV/i, handleResumeCommand);
+  bot.hears(/📖\s*Help/i, handleHelpCommand);
+
   // Inline callback query handler
   bot.on('callback_query:data', handleJobActionCallback);
 

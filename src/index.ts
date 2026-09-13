@@ -9,17 +9,30 @@ async function bootstrap() {
 
   const bot = createBot();
 
-  // Set bot commands menu in Telegram
+  // Set bot descriptions and commands menu in Telegram
   try {
+    await bot.api.setMyDescription(
+      '🎨 Iran Design Job Hunter Bot 🇮🇷\n\n' +
+      'Automated 24/7 scanner & hunter for UI/UX & Product Design positions across Iran (Jobinja, Jobvision, and more).\n\n' +
+      '⚡ Real-time alerts with Gemini AI fit analysis\n' +
+      '🎯 Curated specifically for UI/UX & Product Designers\n' +
+      '⭐ 1-click apply, bookmarking & tracking'
+    );
+
+    await bot.api.setMyShortDescription(
+      '🎨 24/7 Automated UI/UX & Product Design Job Hunter in Iran powered by Gemini AI.'
+    );
+
     await bot.api.setMyCommands([
-      { command: 'jobs', description: '🎨 Top matching UI/UX & Product Design jobs' },
-      { command: 'saved', description: '⭐ Bookmarked jobs' },
-      { command: 'applied', description: '✅ Applied jobs tracker' },
-      { command: 'stats', description: '📊 Hunting statistics' },
-      { command: 'settings', description: '⚙️ Alert threshold settings' },
+      { command: 'jobs', description: '🎨 View top matching design jobs' },
+      { command: 'saved', description: '⭐ View bookmarked jobs' },
+      { command: 'applied', description: '✅ View applied jobs tracker' },
+      { command: 'stats', description: '📊 Scanner & hunting statistics' },
+      { command: 'settings', description: '⚙️ Notification threshold settings' },
       { command: 'resume', description: '💼 Portfolio and CV links' },
-      { command: 'help', description: '📖 Commands & help' },
+      { command: 'help', description: '📖 Commands & usage guide' },
     ]);
+    logger.info('Registered Telegram bot description and commands menu.');
   } catch (err) {
     logger.warn('Could not register bot commands menu with Telegram API', { error: (err as Error).message });
   }
