@@ -27,6 +27,7 @@ export class JobvisionSource implements JobSource {
             keyword,
             page: 1,
             pageSize: 25,
+            locIds: [1], // Tehran location ID in Jobvision
           },
           {
             headers: this.defaultHeaders,
@@ -39,9 +40,22 @@ export class JobvisionSource implements JobSource {
           const id = item.id;
           const title = item.title || '';
           const company = item.company?.nameFa || item.company?.nameEn || 'شرکت محرمانه';
-          const location = item.location?.city?.titleFa || item.location?.province?.titleFa || 'ایران';
+          const location = item.location?.city?.titleFa || item.location?.province?.titleFa || 'تهران';
           const url = `https://jobvision.ir/jobs/${id}`;
           const postedAt = item.activationTime?.beautifyFa || item.firstActivationTime?.beautifyFa || 'به تازگی';
+
+          const workplaceType = item.properties?.isRemote ? 'Remote' : 'On-site';
+
+          // Location filtering check
+          const locLower = location.toLowerCase();
+          const isRemote = workplaceType === 'Remote' || locLower.includes('دورکاری') || locLower.includes('remote');
+          const isTehran = locLower.includes('تهران') || locLower.includes('tehran');
+          if (location && !isTehran && !isRemote) {
+            const otherCities = ['اصفهان', 'مشهد', 'شیراز', 'تبریز', 'کرج', 'یزد', 'قم', 'رشت', 'اهواز', 'کرمان', 'ساری', 'همدان'];
+            if (otherCities.some((c) => locLower.includes(c))) {
+              continue;
+            }
+          }
 
           const skills: string[] = [];
           if (Array.isArray(item.jobCategories)) {
@@ -51,7 +65,6 @@ export class JobvisionSource implements JobSource {
             }
           }
 
-          const workplaceType = item.properties?.isRemote ? 'Remote' : 'On-site';
           const employmentType = item.workType?.titleFa || item.seniorityLevel?.titleFa;
           const expYears = item.properties?.requiredRelatedExperienceYears;
 
@@ -61,7 +74,7 @@ export class JobvisionSource implements JobSource {
               sourceJobId: String(id),
               title,
               company,
-              location,
+              location: location || 'تهران',
               description: `${title} در شرکت ${company}. دسته شغلی: ${skills.join(', ')}. سابقه کار مورد نیاز: ${expYears ? `${expYears} سال` : 'نامشخص'}.`,
               url,
               postedAt,

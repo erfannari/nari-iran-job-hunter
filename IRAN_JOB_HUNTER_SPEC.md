@@ -19,7 +19,7 @@ An automated Telegram bot + 24/7 GitHub Actions scanner that continuously scrape
 - **Excluded Roles (Negative Keywords)**:
   - Frontend Developers, Graphic Designers (Print/Banner/Photoshop-only printing houses), 3D Artists, Industrial Designers, Motion Graphic Designers (unless paired with Product Design), Interior Designers.
 - **Location Policy**:
-  - Iran (Tehran, Isfahan, Shiraz, etc.) or Remote across Iran. No strict location filtering needed.
+  - Target City: **Tehran (تهران)** or **Remote (دورکاری)**. Positions strictly located in other cities are filtered out.
 - **Language Policy**:
   - Job descriptions are primarily Persian (Farsi) or English. Both are 100% accepted (no disqualification for Persian/English).
 

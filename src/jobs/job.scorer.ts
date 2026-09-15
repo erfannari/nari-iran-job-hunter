@@ -27,7 +27,27 @@ export class JobScorer {
       }
     }
 
-    // 2. Exact or Strong Title Match
+    // 2. Check Location (Must be Tehran or Remote)
+    const locLower = (job.location || '').toLowerCase();
+    const isRemote =
+      (job.workplace_type || '').toLowerCase().includes('remote') ||
+      locLower.includes('دورکاری') ||
+      locLower.includes('remote');
+    const isTehran = locLower.includes('تهران') || locLower.includes('tehran');
+
+    if (!isTehran && !isRemote && job.location) {
+      for (const dis of DESIGN_PROFILE.disallowedLocations) {
+        if (locLower.includes(dis.toLowerCase())) {
+          return {
+            score: 0,
+            reasons: [`Disqualified due to non-Tehran location: "${job.location}"`],
+            isDisqualified: true,
+          };
+        }
+      }
+    }
+
+    // 3. Exact or Strong Title Match
     let matchedTitle = false;
     for (const target of DESIGN_PROFILE.targetTitles) {
       if (titleLower.includes(target)) {

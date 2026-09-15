@@ -25,6 +25,7 @@ Evaluate the following job posting against our Target Design Candidate Profile:
 
 ### Target Candidate Profile:
 - Primary Roles: UI/UX Designer (3-4 years exp) or Product Designer (1-2 years exp), UX Researcher, Visual / Interaction Designer.
+- Location: Located in Tehran (تهران) or Remote / Hybrid based in Tehran. On-site jobs strictly located in other cities outside Tehran should be disqualified / given low score.
 - Core Skills: Figma, Design Systems, Wireframing, User Research, Usability Testing, Prototyping, Information Architecture.
 - Negative Fit (Immediate low score): Pure Frontend Developer / Coding role, Graphic Print / Banner production / Offset print house, 3D Artist, Interior / Industrial Design, Sales / Admin.
 - Note: Both Persian and English job descriptions are completely valid and should be evaluated equally.

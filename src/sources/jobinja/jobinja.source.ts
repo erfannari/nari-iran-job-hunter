@@ -9,11 +9,11 @@ export class JobinjaSource implements JobSource {
   readonly isEnabled = true;
 
   private readonly searchUrls = [
-    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=%D8%B7%D8%B1%D8%A7%D8%AD+%D9%85%D8%AD%D8%B5%D9%88%D9%84', // طراح محصول
-    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=ui%2Bux', // ui ux
-    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=%D8%B7%D8%B1%D8%A7%D8%AD+%D8%B1%D8%A7%D8%A8%D8%B7+%DA%A9%D8%A7%D8%B1%D8%A8%D8%B1%DB%8C', // طراح رابط کاربری
-    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=%D8%B7%D8%B1%D8%A7%D8%AD+%D8%AA%D8%AC%D8%B1%D8%A8%D9%87+%DA%A9%D8%A7%D8%B1%D8%A8%D8%B1%DB%8C', // طراح تجربه کاربری
-    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=Product+Designer',
+    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=%D8%B7%D8%B1%D8%A7%D8%AD+%D9%85%D8%AD%D8%B5%D9%88%D9%84&filters%5Blocations%5D%5B%5D=%D8%AA%D9%87%D8%B1%D8%A7%D9%86', // طراح محصول - تهران
+    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=ui%2Bux&filters%5Blocations%5D%5B%5D=%D8%AA%D9%87%D8%B1%D8%A7%D9%86', // ui ux - تهران
+    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=%D8%B7%D8%B1%D8%A7%D8%AD+%D8%B1%D8%A7%D8%A8%D8%B7+%DA%A9%D8%A7%D8%B1%D8%A8%D8%B1%DB%8C&filters%5Blocations%5D%5B%5D=%D8%AA%D9%87%D8%B1%D8%A7%D9%86', // طراح رابط کاربری - تهران
+    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=%D8%B7%D8%B1%D8%A7%D8%AD+%D8%AA%D8%AC%D8%B1%D8%A8%D9%87+%DA%A9%D8%A7%D8%B1%D8%A8%D8%B1%DB%8C&filters%5Blocations%5D%5B%5D=%D8%AA%D9%87%D8%B1%D8%A7%D9%86', // طراح تجربه کاربری - تهران
+    'https://jobinja.ir/jobs?filters%5Bkeywords%5D%5B%5D=Product+Designer&filters%5Blocations%5D%5B%5D=%D8%AA%D9%87%D8%B1%D8%A7%D9%86', // Product Designer - تهران
   ];
 
   private readonly defaultHeaders = {
@@ -60,6 +60,18 @@ export class JobinjaSource implements JobSource {
             .text()
             .trim();
 
+          // Filter out jobs strictly in other cities if non-Tehran and not remote
+          const locLower = location.toLowerCase();
+          const isRemote = locLower.includes('دورکاری') || locLower.includes('remote');
+          const isTehran = locLower.includes('تهران') || locLower.includes('tehran');
+          if (location && !isTehran && !isRemote) {
+            // Check if it specifically matches other cities
+            const otherCities = ['اصفهان', 'مشهد', 'شیراز', 'تبریز', 'کرج', 'یزد', 'قم', 'رشت', 'اهواز', 'کرمان', 'ساری', 'همدان'];
+            if (otherCities.some((c) => locLower.includes(c))) {
+              return; // Skip non-Tehran job
+            }
+          }
+
           const postedAt = $el.find('.c-jobListView__passedTime, .o-listView__itemPassedTime').text().trim();
 
           // Extract job id from url
@@ -75,7 +87,7 @@ export class JobinjaSource implements JobSource {
               sourceJobId,
               title,
               company: company || 'شرکت محرمانه',
-              location: location || 'ایران / تهران',
+              location: location || 'تهران',
               description: snippet || `${title} در ${company}`,
               url: href,
               postedAt: postedAt || 'به تازگی',
